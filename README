@@ -1,0 +1,19 @@
+[How to use]
+ >ipython
+ In [1]: %run run_psi.py 20141031_N
+ In [1]: %run run_extrig.py 20141031_N
+
+- run_psi.py # load, analysis, dumpROOT
+- run_extrig.py # exernal trigger matching
+
+[Bool conditions]
+there are boolean parameters in run_xxx.py for
+analysis, dumpROOT, extrig matching
+
+[exttrig module]
+to make a module for external trigger loop
+using 'cython' for fast loop calculation
+edit exttrigloop.pyx
+do
+ > python setup.py build_ext -ihoge
+

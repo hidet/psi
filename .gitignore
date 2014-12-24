@@ -1,0 +1,3 @@
+# ignore object and archive
+*.so
+*.[oa]
