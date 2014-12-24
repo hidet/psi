@@ -19,5 +19,5 @@ to make a module for external trigger loop
 using 'cython' for fast loop calculation
 edit exttrigloop.pyx
 do
- > python setup.py build_ext -ihoge
+ > python setup.py build_ext -i
 
