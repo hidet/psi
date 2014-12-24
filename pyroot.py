@@ -401,7 +401,9 @@ def make_exttrig_match_ROOT(data, fout="hoge_match.root", fopt="recreate"):
         pt.Branch('diff',       bp_diff,      'diff[%d]/D'%maxnrst)
         timestamp   = np.array(ds.p_timestamp, np.float64)
         filt_phase  = np.array(ds.p_filt_phase, np.float64)
-        stmprstind = get_reset_index(timestamp,timebase=1.,nrst=maxnrst,tdiff=1.)
+        stmprstind = get_reset_index(timestamp,timebase=1.,nrst=maxnrst,tdiff=20.)
+        for i,x in enumerate(stmprstind):
+            print "---- timestamp reset", i, x, timestamp[x]
         if len(trigtime)-1 != len(stmprstind):
             print "number of resets mismatching, maybe trigger is strange"
             return
