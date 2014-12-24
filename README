@@ -1,3 +1,7 @@
+[define data folder]
+in 'run_psi.py'
+ dir_d = "/Users/oper/work/heates/data"
+
 [How to use]
  >ipython
  In [1]: %run run_psi.py 20141031_N
