@@ -1,3 +1,4 @@
 # ignore object and archive
+*.pyc
 *.so
 *.[oa]
