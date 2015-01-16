@@ -3,6 +3,7 @@ import pylab as plt
 import mass
 import h5py
 from os import path
+import cPickle
 import shutil
 import traceback, sys
 import time
@@ -65,7 +66,8 @@ def analyze_data(data, forceNew=False, std_energy=5899):
     data.filter_data(forceNew=forceNew)
     data.drift_correct(forceNew=forceNew)
     data.phase_correct2014(10, plot=False, forceNew=forceNew, pre_sanitize_p_filt_phase=True)
-
+    data.time_drift_correct(forceNew=forceNew)
+    #data.time_drift_correct(forceNew=True)
 
 def analyze_data_from_other(data, forceNew=False, std_energy=5899, hdf5name=""):
     data.compute_noise_spectra()
@@ -77,14 +79,16 @@ def analyze_data_from_other(data, forceNew=False, std_energy=5899, hdf5name=""):
     data.filter_data_from_other(forceNew=forceNew,hdf5name=hdf5name)
     data.drift_correct(forceNew=forceNew)
     data.phase_correct2014(10, plot=False, forceNew=forceNew, pre_sanitize_p_filt_phase=True)
+    data.time_drift_correct(forceNew=forceNew)
+    
 
-
-def calib_data(data, forceNew=False, newcal=True, calib=[], excl=[]):
+def calib_data(data, newcal=True, calib=[], excl=[]):
+    data.calibrate('p_filt_value', calib, size_related_to_energy_resolution=20.0,
+                   excl=excl,forceNew=newcal, max_num_clusters = 18, plot_on_fail=False)
     data.calibrate('p_filt_value_dc', calib, size_related_to_energy_resolution=20.0,
                    excl=excl,forceNew=newcal, max_num_clusters = 18, plot_on_fail=False)
     data.calibrate('p_filt_value_phc', calib, size_related_to_energy_resolution=20.0,
                    excl=excl,forceNew=newcal, max_num_clusters = 18, plot_on_fail=False)
-    data.time_drift_correct(forceNew=forceNew)
     data.calibrate('p_filt_value_tdc', calib, size_related_to_energy_resolution=20.0,
                    excl=excl,forceNew=newcal, max_num_clusters = 18, plot_on_fail=False)
 
@@ -93,50 +97,50 @@ def analyze_data_Mn(data, forceNew=False, newcal=True):
     caliblines = ["MnKAlpha", "MnKBeta"]
     excl=[]
     analyze_data(data,forceNew,std_energy=5899)
-    calib_data(data,forceNew,newcal,caliblines,excl)
+    calib_data(data,newcal,caliblines,excl)
 
 def analyze_data_Fe(data, forceNew=False, newcal=True):
     caliblines = ["FeKAlpha", "FeKBeta"]
     excl=[]
     analyze_data(data,forceNew,std_energy=6404)
-    calib_data(data,forceNew,newcal,caliblines,excl)
+    calib_data(data,newcal,caliblines,excl)
 
 def analyze_data_Se(data, forceNew=False, newcal=True):
     caliblines = ["SeKAlpha", "SeKBeta"]
     excl=[]
     analyze_data(data,forceNew,std_energy=11222)
-#    calib_data(data,forceNew,newcal,caliblines,excl)
+#    calib_data(data,newcal,caliblines,excl)
 
 def analyze_data_Ge(data, forceNew=False, newcal=True):
     caliblines = ["GeKAlpha", "GeKBeta"]
     excl=[]
     analyze_data(data,forceNew,std_energy=9886)
-#    calib_data(data,forceNew,newcal,caliblines,excl)
+#    calib_data(data,newcal,caliblines,excl)
 
 def analyze_data_GaAs(data, forceNew=False, newcal=True):
     caliblines = ["GaKAlpha", "GaKBeta", "AsKAlpha", "AsKBeta"]
     excl=[]
     analyze_data(data,forceNew,std_energy=9252)
-#    calib_data(data,forceNew,newcal,caliblines,excl)
+#    calib_data(data,newcal,caliblines,excl)
 
 def analyze_data_RbBr(data, forceNew=False, newcal=True):
     caliblines = ["BrKAlpha", "BrKBeta", "RbKAlpha", "RbKBeta"]
     excl=[]
     analyze_data(data,forceNew,std_energy=11924)
-#    calib_data(data,forceNew,newcal,caliblines,excl)
+#    calib_data(data,newcal,caliblines,excl)
         
 def analyze_data_CrCo(data, forceNew=False, newcal=True):
     caliblines = ["CrKAlpha", "CrKBeta", "CoKAlpha", "CoKBeta"]
     excl=[]
     analyze_data(data,forceNew,std_energy=5415)
-    calib_data(data,forceNew,newcal,caliblines,excl)
+    calib_data(data,newcal,caliblines,excl)
 
 def analyze_data_lowE(data, forceNew=False, newcal=True):
     caliblines = ["CrKAlpha", "MnKAlpha", "CrKBeta", "FeKAlpha", "MnKBeta", \
                   "CoKAlpha", "FeKBeta", "CoKBeta", "CuKAlpha", "CuKBeta"]
     excl = ["CrKBeta"]
     analyze_data(data,forceNew,std_energy=5899)
-    calib_data(data,forceNew,newcal,caliblines,excl)
+    calib_data(data,newcal,caliblines,excl)
 
 def analyze_data_highE(data, forceNew=False, newcal=True):
     caliblines = ["MnKAlpha", "FeKAlpha", "MnKBeta", "FeKBeta", \
@@ -145,8 +149,54 @@ def analyze_data_highE(data, forceNew=False, newcal=True):
                   "SeKBeta", "BrKBeta", "RbKAlpha", "RbKBeta"]
     excl = ["MnKBeta", "FeKBeta", "GaKBeta","GeKBeta","SeKBeta","AsKBeta","BrKBeta","RbKBeta"]
     analyze_data(data,forceNew,std_energy=9252)
-#    calib_data(data,forceNew,newcal,caliblines,excl)
+#    calib_data(data,newcal,caliblines,excl)
         
+
+
+# ---------------- resolutions --------------------
+def get_resolutions_Mn(data, nch=225, nmnka=0, std_energy=5899.):
+    filter_name = 'noconst'
+    rms_fwhm = np.sqrt(np.log(2)*8) # FWHM is this much times the RMS
+    chan     = np.zeros(nch, dtype=float)
+    fwhm     = np.zeros(nch, dtype=float)
+    resol    = np.zeros(nch, dtype=float)
+    resoldc  = np.zeros(nch, dtype=float)
+    resolphc = np.zeros(nch, dtype=float)
+    resoltdc = np.zeros(nch, dtype=float)
+    med = np.zeros((nch,6), dtype=float)
+    for i,ds in enumerate(data):
+        chan[i]=ds.channum
+        rms  = ds.hdf5_group['filters/filt_%s'%filter_name].attrs['variance']**0.5
+        fwhm[i]=std_energy*rms*rms_fwhm
+        pkl_fname = ds.pkl_fname
+        if path.isfile(pkl_fname):
+            with open(pkl_fname,"r") as file:
+                ds.calibration = cPickle.load(file)
+                calname = 'p_filt_value'
+                if ds.calibration.has_key(calname):
+                    cal = ds.calibration[calname]
+                    resol[i]=cal.energy_resolutions[nmnka]
+                calname = 'p_filt_value_dc'
+                if ds.calibration.has_key(calname):
+                    caldc = ds.calibration[calname]
+                    resoldc[i]=caldc.energy_resolutions[nmnka]
+                calname = 'p_filt_value_phc'
+                if ds.calibration.has_key(calname):
+                    calphc = ds.calibration[calname]
+                    resolphc[i]=calphc.energy_resolutions[nmnka]
+                calname = 'p_filt_value_tdc'
+                if ds.calibration.has_key(calname):
+                    caltdc = ds.calibration[calname]
+                    resoltdc[i]=caltdc.energy_resolutions[nmnka]
+        print "%d  %f  %f  %f  %f  %f"%(chan[i],fwhm[i],resol[i],resoldc[i],resolphc[i],resoltdc[i])
+        med[i][0]=chan[i]
+        med[i][1]=np.median(fwhm)
+        med[i][2]=np.median(resol)
+        med[i][3]=np.median(resoldc)
+        med[i][4]=np.median(resolphc)
+        med[i][5]=np.median(resoltdc)
+    return med
+
 
 
 
@@ -212,7 +262,7 @@ def dump_ROOT(data, fout="tree.root", fopt = "recreate"):
         bc_timebase[0] = ds.timebase
         bc_timestamp_offset[0] = ds.timestamp_offset
         #rms = ds.hdf5_group['filters/filt_%s'%filter_name].attrs['variance']**0.5
-        #bc_dE_predict[0] = std_energy*rms*rms_fwhm
+        #Bc_de_predict[0] = std_energy*rms*rms_fwhm
         ct.Fill()
         # ---------------------------------------------
         
@@ -351,7 +401,7 @@ def get_trigtime_list(trig_times, row_timebase=0.32*1e-6,  maxnrst=100, tdiff=1e
     '''
     rstind = get_reset_index(trig_times,timebase=row_timebase,nrst=maxnrst,tdiff=tdiff)
     for i,x in enumerate(rstind):
-        print "---- external trig reset", i, x, trig_times[x]*row_timebase
+        print "---- external trig reset", i, x, trig_times[x]*row_timebase, trig_times[x-1]*row_timebase
     trigtime = []
     if len(rstind)==0:# no reset
         trigtime.append(trig_times[:])
@@ -363,6 +413,12 @@ def get_trigtime_list(trig_times, row_timebase=0.32*1e-6,  maxnrst=100, tdiff=1e
         for i in xrange(1,len(rstind),1):
             trigtime.append(trig_times[rstind[i-1]:rstind[i]])
         trigtime.append(trig_times[rstind[len(rstind)-1]:])
+
+    tt = list(trigtime)
+    for i in xrange(len(tt)):
+        if tt[i][-1]*row_timebase<20.:
+            trigtime.pop(i)
+    
     return trigtime
 
 
@@ -403,7 +459,7 @@ def make_exttrig_match_ROOT(data, fout="hoge_match.root", fopt="recreate"):
         filt_phase  = np.array(ds.p_filt_phase, np.float64)
         stmprstind = get_reset_index(timestamp,timebase=1.,nrst=maxnrst,tdiff=20.)
         for i,x in enumerate(stmprstind):
-            print "---- timestamp reset", i, x, timestamp[x]
+            print "---- timestamp reset", i, x, timestamp[x], timestamp[x-1]
         if len(trigtime)-1 != len(stmprstind):
             print "number of resets mismatching, maybe trigger is strange"
             return

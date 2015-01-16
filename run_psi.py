@@ -8,6 +8,8 @@ import psidata
 import pyroot as a
 #import exafs
 
+import cPickle
+from os import path
 
 dir_d = "/Users/tatsuno/work/heates/data"
 date_p, ds_p = "20141030","I"
@@ -19,8 +21,9 @@ ana = "lowE"
 forceNew = False  # update
 anado    = False  # do analaysis
 newcal   = False  # update calibration
+resol    = True   # print resolutions
 plot     = False  # plot figures for a ch
-dump     = True  # dump to ROOT file
+dump     = False  # dump to ROOT file
 # ----------------
 
 
@@ -103,6 +106,8 @@ data = a.load_psi(date_p,ds_p,date_n,ds_n,chs=chans,cut=cuts,ddir=dir_d)
 if "__file__" in locals():
     a.cp_file_to_mass_output(__file__, data.datasets[0].filename)  
 
+
+
 # --- analysis
 if anado:
     if ana=="Off":
@@ -140,6 +145,15 @@ if anado:
     else:
         print "Error: no analysis code"
 
+
+if resol:
+    if ana=="Mn":
+        med = a.get_resolutions_Mn(data,nch=len(chans),nmnka=0)
+    elif ana=="lowE":
+        med = a.get_resolutions_Mn(data,nch=len(chans),nmnka=1)
+
+        
+        
 # --- dump to ROOT file
 if dump:
     data.set_chan_good(chans)

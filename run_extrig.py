@@ -56,8 +56,8 @@ cuts = mass.core.controller.AnalysisControl(
 )
 
 # --- set channel numbers
-#chans = [i for i in xrange(1,480,2)]
-chans = [1,3]
+chans = [i for i in xrange(1,480,2)]
+#chans = [1,3]
 exceptch = [83,109,111,115,185,243,285,323,339,349,351,363,397,401,421]
 badch = [245,247,275,277]
 exceptch.extend(badch)
