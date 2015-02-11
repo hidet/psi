@@ -9,7 +9,6 @@ cimport numpy as np
 cimport cython
 
 ctypedef np.int64_t INT_t
-ctypedef np.uint64_t UINT_t
 ctypedef np.float64_t DOUBLE_t
 
 def external_trig_loop(np.ndarray[DOUBLE_t, ndim=1] tstamp, \
@@ -23,7 +22,7 @@ def external_trig_loop(np.ndarray[DOUBLE_t, ndim=1] tstamp, \
     cdef int tb=0
     cdef int maxtrig=100
     cdef int ip, it, ii
-    cdef np.ndarray[UINT_t, ndim=1] tt = np.array(trigtime[ir])
+    cdef np.ndarray[INT_t, ndim=1] tt = np.array(trigtime[ir])
     cdef np.ndarray[DOUBLE_t, ndim=2] tmatch =\
       np.zeros((len(tstamp),maxtrig),dtype=np.float64)
     cdef np.ndarray[DOUBLE_t, ndim=2] diff =\
@@ -39,7 +38,8 @@ def external_trig_loop(np.ndarray[DOUBLE_t, ndim=1] tstamp, \
             tt = np.array(trigtime[ir])
             print "new trigtime length %d"%(len(tt))
             tb = 0
-        if tb==len(tt):continue
+        if tb==len(tt) and ir==len(stampind):break
+        elif tb==len(tt):continue
         for it in xrange(tb,len(tt),1):
             tdiff = ((tstamp[ip] - tt[it]*row_timebase) + tphase[ip]*timebase)*1e6
             if tdiff<(-1.*dusec):

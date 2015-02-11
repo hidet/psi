@@ -19,9 +19,9 @@ ana = "lowE"
 
 # --- booleans ---
 forceNew = False  # update
-anado    = False  # do analaysis
+anado    = True  # do analaysis
 newcal   = False  # update calibration
-resol    = True   # print resolutions
+resol    = True  # print resolutions
 plot     = False  # plot figures for a ch
 dump     = False  # dump to ROOT file
 # ----------------
@@ -81,8 +81,11 @@ cuts = mass.core.controller.AnalysisControl(
     pulse_average=(0, pave_high),
     pretrigger_rms=(1, 100),
     pretrigger_mean_departure_from_median=(-120, 120),
-    peak_value=(0, None),
     postpeak_deriv=(None, 250),
+    #pretrigger_rms=(0, 70),
+    #pretrigger_mean_departure_from_median=(-30, 30),
+    #postpeak_deriv=(0, 30),
+    peak_value=(0, None),
     rise_time_ms=(0.10, 0.30),
     peak_time_ms=(0.10, 0.50)
 )
@@ -149,8 +152,13 @@ if anado:
 if resol:
     if ana=="Mn":
         med = a.get_resolutions_Mn(data,nch=len(chans),nmnka=0)
+    elif ana=="CrCo":
+        #med = a.get_resolutions_Cr(data,nch=len(chans),ncrka=0)
+        med = a.get_resolutions_Co(data,nch=len(chans),ncoka=2)
     elif ana=="lowE":
-        med = a.get_resolutions_Mn(data,nch=len(chans),nmnka=1)
+        #med = a.get_resolutions_Mn(data,nch=len(chans),nmnka=1)
+        med = a.get_resolutions_Co(data,nch=len(chans),ncoka=5)
+
 
         
         

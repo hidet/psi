@@ -140,6 +140,7 @@ def analyze_data_lowE(data, forceNew=False, newcal=True):
                   "CoKAlpha", "FeKBeta", "CoKBeta", "CuKAlpha", "CuKBeta"]
     excl = ["CrKBeta"]
     analyze_data(data,forceNew,std_energy=5899)
+#    analyze_data(data,forceNew,std_energy=6930)
     calib_data(data,newcal,caliblines,excl)
 
 def analyze_data_highE(data, forceNew=False, newcal=True):
@@ -188,13 +189,105 @@ def get_resolutions_Mn(data, nch=225, nmnka=0, std_energy=5899.):
                 if ds.calibration.has_key(calname):
                     caltdc = ds.calibration[calname]
                     resoltdc[i]=caltdc.energy_resolutions[nmnka]
-        print "%d  %f  %f  %f  %f  %f"%(chan[i],fwhm[i],resol[i],resoldc[i],resolphc[i],resoltdc[i])
+        print "%3d  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f"%(chan[i],fwhm[i],resol[i],resoldc[i],resolphc[i],resoltdc[i])
         med[i][0]=chan[i]
         med[i][1]=np.median(fwhm)
         med[i][2]=np.median(resol)
         med[i][3]=np.median(resoldc)
         med[i][4]=np.median(resolphc)
         med[i][5]=np.median(resoltdc)
+    return med
+
+
+
+
+def get_resolutions_Cr(data, nch=225, ncrka=0, std_energy=5414.8):
+    filter_name = 'noconst'
+    rms_fwhm = np.sqrt(np.log(2)*8) # FWHM is this much times the RMS
+    chan     = np.zeros(nch, dtype=float)
+    fwhm     = np.zeros(nch, dtype=float)
+    resol    = np.zeros(nch, dtype=float)
+    resoldc  = np.zeros(nch, dtype=float)
+    resolphc = np.zeros(nch, dtype=float)
+    resoltdc = np.zeros(nch, dtype=float)
+    med = np.zeros((nch,6), dtype=float)
+    for i,ds in enumerate(data):
+        chan[i]=ds.channum
+        rms  = ds.hdf5_group['filters/filt_%s'%filter_name].attrs['variance']**0.5
+        fwhm[i]=std_energy*rms*rms_fwhm
+        pkl_fname = ds.pkl_fname
+        if path.isfile(pkl_fname):
+            with open(pkl_fname,"r") as file:
+                ds.calibration = cPickle.load(file)
+                calname = 'p_filt_value'
+                if ds.calibration.has_key(calname):
+                    cal = ds.calibration[calname]
+                    resol[i]=cal.energy_resolutions[ncrka]
+                    calname = 'p_filt_value_dc'
+                if ds.calibration.has_key(calname):
+                    caldc = ds.calibration[calname]
+                    resoldc[i]=caldc.energy_resolutions[ncrka]
+                    calname = 'p_filt_value_phc'
+                if ds.calibration.has_key(calname):
+                    calphc = ds.calibration[calname]
+                    resolphc[i]=calphc.energy_resolutions[ncrka]
+                    calname = 'p_filt_value_tdc'
+                if ds.calibration.has_key(calname):
+                    caltdc = ds.calibration[calname]
+                    resoltdc[i]=caltdc.energy_resolutions[ncrka]
+            print "%d  %f  %f  %f  %f  %f"%(chan[i],fwhm[i],resol[i],resoldc[i],resolphc[i],resoltdc[i])
+            med[i][0]=chan[i]
+            med[i][1]=np.median(fwhm)
+            med[i][2]=np.median(resol)
+            med[i][3]=np.median(resoldc)
+            med[i][4]=np.median(resolphc)
+            med[i][5]=np.median(resoltdc)
+    return med
+
+
+
+
+def get_resolutions_Co(data, nch=225, ncoka=5, std_energy=6930.):
+    filter_name = 'noconst'
+    rms_fwhm = np.sqrt(np.log(2)*8) # FWHM is this much times the RMS
+    chan     = np.zeros(nch, dtype=float)
+    fwhm     = np.zeros(nch, dtype=float)
+    resol    = np.zeros(nch, dtype=float)
+    resoldc  = np.zeros(nch, dtype=float)
+    resolphc = np.zeros(nch, dtype=float)
+    resoltdc = np.zeros(nch, dtype=float)
+    med = np.zeros((nch,6), dtype=float)
+    for i,ds in enumerate(data):
+        chan[i]=ds.channum
+        rms  = ds.hdf5_group['filters/filt_%s'%filter_name].attrs['variance']**0.5
+        fwhm[i]=std_energy*rms*rms_fwhm
+        pkl_fname = ds.pkl_fname
+        if path.isfile(pkl_fname):
+            with open(pkl_fname,"r") as file:
+                ds.calibration = cPickle.load(file)
+                calname = 'p_filt_value'
+                if ds.calibration.has_key(calname):
+                    cal = ds.calibration[calname]
+                    resol[i]=cal.energy_resolutions[ncoka]
+                    calname = 'p_filt_value_dc'
+                if ds.calibration.has_key(calname):
+                    caldc = ds.calibration[calname]
+                    resoldc[i]=caldc.energy_resolutions[ncoka]
+                    calname = 'p_filt_value_phc'
+                if ds.calibration.has_key(calname):
+                    calphc = ds.calibration[calname]
+                    resolphc[i]=calphc.energy_resolutions[ncoka]
+                    calname = 'p_filt_value_tdc'
+                if ds.calibration.has_key(calname):
+                    caltdc = ds.calibration[calname]
+                    resoltdc[i]=caltdc.energy_resolutions[ncoka]
+            print "%3d  %f  %f  %f  %f  %f"%(chan[i],fwhm[i],resol[i],resoldc[i],resolphc[i],resoltdc[i])
+            med[i][0]=chan[i]
+            med[i][1]=np.median(fwhm)
+            med[i][2]=np.median(resol)
+            med[i][3]=np.median(resoldc)
+            med[i][4]=np.median(resolphc)
+            med[i][5]=np.median(resoltdc)
     return med
 
 
@@ -288,7 +381,7 @@ def dump_ROOT(data, fout="tree.root", fopt = "recreate"):
         bp_pulse_rms = np.zeros(1, dtype=np.float64)
         bp_rise_time = np.zeros(1, dtype=np.float64)
         bp_timestamp = np.zeros(1, dtype=np.float64)
-        #bp_traces = np.zeros(ds.nSamples, dtype=np.uint16)
+        bp_traces = np.zeros(ds.nSamples, dtype=np.uint16)
         # --- tree branch address
         pt.Branch('ev',            bp_ev, 'event/I')
         pt.Branch('good',          bp_good, 'good/O')
@@ -309,7 +402,7 @@ def dump_ROOT(data, fout="tree.root", fopt = "recreate"):
         pt.Branch('pulse_rms',     bp_pulse_rms, 'pulse_rms/D')
         pt.Branch('rise_time',     bp_rise_time, 'rise_time/D')
         pt.Branch('timestamp',     bp_timestamp, 'timestamp/D')
-        #pt.Branch('traces',        bp_traces, 'pulse traces[%d]/s'%ds.nSamples)
+        pt.Branch('traces',        bp_traces, 'pulse traces[%d]/s'%ds.nSamples)
         # --- numpy array objects for fast calculation
         ara=np.array(ds.good())
         arb=np.array(ds.p_filt_phase)
@@ -329,7 +422,7 @@ def dump_ROOT(data, fout="tree.root", fopt = "recreate"):
         arp=np.array(ds.p_pulse_rms)
         arq=np.array(ds.p_rise_time)
         arr=np.array(ds.p_timestamp)
-        #art=np.array(ds.traces)
+        art=np.array(ds.traces)
         
         for i in xrange(ds.nPulses):
             bp_ev[0]              = i
@@ -351,8 +444,9 @@ def dump_ROOT(data, fout="tree.root", fopt = "recreate"):
             bp_pulse_rms[0]       = arp[i]
             bp_rise_time[0]       = arq[i]
             bp_timestamp[0]       = arr[i]
-            #bp_traces             = art[i]
-
+            for j in xrange(ds.nSamples):
+                bp_traces[j]             = art[i][j]
+                #print bp_traces[j], art[i][j]
             pt.Fill()
         pt.Write()
     ct.Write()
@@ -366,8 +460,8 @@ def get_external_trig_nparray(hdf5name,dsname="trig_times"):
         sys.exit(0)
     print "---- reading: %s"%hdf5name
     h5 = h5py.File(hdf5name,'r')
-    print "---- making trig_times np.array (np.uint64)"
-    trig_times = np.array(h5[dsname], np.uint64)
+    print "---- making trig_times np.array (np.int64)"
+    trig_times = np.array(h5[dsname], np.int64)
     print "---- # of trigger: %d"%len(trig_times)
     h5.close()
     return trig_times
@@ -395,13 +489,31 @@ def get_reset_index(arr, timebase=0.32*1e-6, nrst=100, tdiff=1e-3):
         return rstind
 
 
-def get_trigtime_list(trig_times, row_timebase=0.32*1e-6,  maxnrst=100, tdiff=1e-3):
+def get_reset_index_diff(arr, nrst=100):
+    diff = np.diff(arr)
+    arrst = np.where(diff<0)
+    rstind = np.zeros(nrst,dtype=int)
+    if len(arrst[0])==0:# no reset
+        rstind = rstind[rstind>0]
+        return rstind
+    else:
+        for i, x in enumerate(arrst[0]):
+            rstind[i]=arrst[0][i]+1
+        rstind = rstind[rstind>0]
+        return rstind
+
+
+
+#def get_trigtime_list(trig_times, row_timebase=0.32*1e-6,  maxnrst=100, tdiff=1e-3):
+def get_trigtime_list(trig_times, row_timebase=0.32*1e-6,  maxnrst=100):
     '''
     separate trig_times with resets and return a list of arrays
     '''
-    rstind = get_reset_index(trig_times,timebase=row_timebase,nrst=maxnrst,tdiff=tdiff)
+    #rstind = get_reset_index(trig_times,timebase=row_timebase,nrst=maxnrst,tdiff=tdiff)
+    rstind = get_reset_index_diff(trig_times,nrst=maxnrst)
     for i,x in enumerate(rstind):
         print "---- external trig reset", i, x, trig_times[x]*row_timebase, trig_times[x-1]*row_timebase
+
     trigtime = []
     if len(rstind)==0:# no reset
         trigtime.append(trig_times[:])
@@ -414,12 +526,110 @@ def get_trigtime_list(trig_times, row_timebase=0.32*1e-6,  maxnrst=100, tdiff=1e
             trigtime.append(trig_times[rstind[i-1]:rstind[i]])
         trigtime.append(trig_times[rstind[len(rstind)-1]:])
 
+    '''
     tt = list(trigtime)
     for i in xrange(len(tt)):
-        if tt[i][-1]*row_timebase<20.:
-            trigtime.pop(i)
+    if tt[i][-1]*row_timebase<stmptdiff:
+    trigtime.pop(i)
+    '''
+        
+    return rstind, trigtime
+
+
+#def get_timestamp_list(timestamp, maxnrst=100, tdiff=20.):
+def get_timestamp_list(timestamp, maxnrst=100):
+    '''
+    maybe this tdiff setting affects the missing timestamp reset...
+    20 sec means the reset under 20-sec long will be ignored...
+    '''
+    #rstind = get_reset_index(timestamp,timebase=1.0,nrst=maxnrst,tdiff=tdiff)
+    rstind = get_reset_index_diff(timestamp,nrst=maxnrst)
+    for i,x in enumerate(rstind):
+        print "---- timestamp reset", i, x, timestamp[x], timestamp[x-1]
+
+    tstamp = []
+    if len(rstind)==0:# no reset
+        tstamp.append(timestamp[:])
+    elif len(rstind)==1:
+        tstamp.append(timestamp[:rstind[0]])
+        tstamp.append(timestamp[rstind[0]:])
+    elif len(rstind)>1:
+        tstamp.append(timestamp[:rstind[0]])
+        for i in xrange(1,len(rstind),1):
+            tstamp.append(timestamp[rstind[i-1]:rstind[i]])
+        tstamp.append(timestamp[rstind[len(rstind)-1]:])
+
+    return rstind, tstamp
+
+
+
+
+def check_two_listlength(trigtime,tstamp,row_timebase,tdiff):
+    intv_trig=[]
+    print "-----------------------------------------"
+    for i in xrange(len(trigtime)):
+        intv_trig.append(trigtime[i][-1]*row_timebase)
+        print "---- external trig list", i, intv_trig[i]
+    print "-----------------------------------------"
+    intv_stmp=[]
+    for i in xrange(len(tstamp)):
+        intv_stmp.append(tstamp[i][-1])
+        print "---- timestamp list    ", i, intv_stmp[i]
+    print "-----------------------------------------"
+
+    nst=len(tstamp)
+    ntr=len(trigtime)
+    istmp=0
+    itrig=0
+    pop=[]
+    if nst>ntr:
+        while istmp<nst:
+            if np.abs(intv_trig[itrig]-intv_stmp[istmp])>tdiff:
+                tstamp.pop(istmp)
+                pop.append(istmp)
+                istmp+=1
+            else:
+                print "reset matching: trig=%d, stmp=%d"%(itrig, istmp)
+                itrig+=1
+                istmp+=1
+            
+        if np.abs(intv_trig[-1]-intv_stmp[-1])>tdiff:
+            print "beam off during this run"
+        else:
+            print "reset matching: trig=%d, stmp=%d"%(ntr-1,nst-1)
+
+    elif nst<ntr:
+        while itrig<ntr:
+            if np.abs(intv_trig[itrig]-intv_stmp[istmp])>tdiff:
+                trigtime.pop(itrig)
+                pop.append(itrig)
+                itrig+=1
+            else:
+                print "reset matching: trig=%d, stmp=%d"%(itrig, istmp)
+                itrig+=1
+                istmp+=1
+                
+        if np.abs(intv_trig[-1]-intv_stmp[-1])>tdiff:
+            print "beam off during this run"
+        else:
+            print "reset matching: trig=%d, stmp=%d"%(ntr-1,nst-1)
+
+    return pop
+
+
+
+def delete_reset(rstind,pop):
+    tmptrig = rstind.tolist()
+    for i,x in enumerate(pop):
+        print "reset index deleted %d %d"%(x, rstind[x])
+        tmptrig.remove(rstind[x])
+    rstind = np.array(tmptrig)
+
+
+
+        
+
     
-    return trigtime
 
 
 def make_exttrig_match_ROOT(data, fout="hoge_match.root", fopt="recreate"):
@@ -436,11 +646,9 @@ def make_exttrig_match_ROOT(data, fout="hoge_match.root", fopt="recreate"):
     trig_times = get_external_trig_nparray(hdf5name)
     print "---- %.3f sec to read hdf5 file"%( time.time() - start )
     maxnrst=100
-    resetdiff=1e-3
     row_timebase = data.datasets[0].timebase/float(data.datasets[0].number_of_rows)
-    trigtime = get_trigtime_list(trig_times,row_timebase=row_timebase,\
-                                 maxnrst=maxnrst,tdiff=resetdiff)
-    
+    rstind, trigtime = get_trigtime_list(trig_times,row_timebase=row_timebase,maxnrst=maxnrst)
+
     f = ROOT.TFile(fout,fopt)
     hall = ROOT.TH1F("hdiff_all","diff_all",2000,-100,100)
 
@@ -457,12 +665,22 @@ def make_exttrig_match_ROOT(data, fout="hoge_match.root", fopt="recreate"):
         pt.Branch('diff',       bp_diff,      'diff[%d]/D'%maxnrst)
         timestamp   = np.array(ds.p_timestamp, np.float64)
         filt_phase  = np.array(ds.p_filt_phase, np.float64)
-        stmprstind = get_reset_index(timestamp,timebase=1.,nrst=maxnrst,tdiff=20.)
-        for i,x in enumerate(stmprstind):
-            print "---- timestamp reset", i, x, timestamp[x], timestamp[x-1]
-        if len(trigtime)-1 != len(stmprstind):
-            print "number of resets mismatching, maybe trigger is strange"
-            return
+
+        stmprstind, tstamp = get_timestamp_list(timestamp,maxnrst=maxnrst)
+        pop = check_two_listlength(trigtime,tstamp,row_timebase,20.)
+        
+        if len(rstind) > len(stmprstind):
+            print "number of resets mismatching, too many reset on external trigger"
+            delete_reset(rstind,pop)
+            for i,x in enumerate(rstind):
+                print "---- timestamp reset", i, x, trig_times[x]*row_timebase, trig_times[x-1]*row_timebase
+
+        elif len(rstind) < len(stmprstind):
+            print "number of resets mismatching, too many reset on timestamp)"
+            delete_reset(stmprstind,pop)
+            for i,x in enumerate(stmprstind):
+                print "---- timestamp reset", i, x, timestamp[x], timestamp[x-1]
+            
         tmatch, diff = extl.external_trig_loop(timestamp,filt_phase,stmprstind,trigtime)
         for i in xrange(len(tmatch)):# nPulses
             bp_nmatch[0] = len(tmatch[i][np.nonzero(tmatch[i])])
@@ -477,7 +695,5 @@ def make_exttrig_match_ROOT(data, fout="hoge_match.root", fopt="recreate"):
     hall.Write()                    
     hall.DrawCopy()
     f.Close()
-
-
 
 
